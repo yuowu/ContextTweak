@@ -3,7 +3,8 @@ Tweaking context menu with registry<br>
 <b>Tested extentions:</b> 
 - .js 
 - .py
-- . psd 
+- .psd 
 - .reg 
 - .bat
 - .pptx
+- and some others
