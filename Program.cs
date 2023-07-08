@@ -1,81 +1,110 @@
 using Microsoft.Win32;
+using System;
+using System.Threading;
 
-string version = "1.0.0";
-Console.Title = $"Context Tweak (ver. {version})";
-
-Console.ForegroundColor = ConsoleColor.Magenta;
-
-Console.WriteLine($"Context Tweak ({version})\nhttps://github.com/maedakatoo");
-Console.Write("1 - Add extension\n2 - Remove extension\n> ");
-string choice = Console.ReadLine();
-Console.Clear();
-
-switch (choice)
+class Program
 {
-    case "1":
-        //Console.WriteLine("Добавление элемента в контестное меню\n");
-        Add();
-        break;
-
-    case "2":
-        //Console.WriteLine("Удаление элемента из контекстного меню\n");
-        Remove();
-        break;
-    default:
-        //return;
-        break;
-}
-
-
-void Add()
-{
-    Console.Write("Extension name (with dot, for example: .psd) > ");
-    string File = Console.ReadLine();
-
-    RegistryKey myKey = Registry.CurrentUser;
-
-
-    RegistryKey AddKey = myKey.OpenSubKey($"Software\\Classes\\{File}", true);
-
-    try
+    static void Main()
     {
-        RegistryKey newKey = AddKey.CreateSubKey("ShellNew");
-        newKey.SetValue("Filename", "");
-
-        Console.WriteLine($"Done!", newKey.Name);
+        string version = "1.1.0";
+        Console.Title = $"Context Tweak // {version}";
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Menu();
     }
-    catch (Exception e)
+
+    static void Menu()
     {
-        Console.WriteLine(e.Message);
+        Console.Clear();
+        Console.Write("1 - Add extension\n2 - Remove extension\n> ");
+
+        string choice = Console.ReadLine();
+
+        switch (choice)
+        {
+            case "1":
+                Add();
+                break;
+
+            case "2":
+                Remove();
+                break;
+
+            default:
+                Menu();
+                break;
+        }
     }
-    finally
+
+    static async void Add()
     {
-        myKey.Close();
+        Console.Write("Extension name (with dot, for example: .psd) > ");
+        string extension = Console.ReadLine();
+
+        RegistryKey myKey = Registry.CurrentUser;
+        RegistryKey addKey = myKey.OpenSubKey($"Software\\Classes\\{extension}", true);
+
+        try
+        {
+            if (addKey == null)
+            {
+                addKey = myKey.CreateSubKey($"Software\\Classes\\{extension}");
+            }
+
+            RegistryKey newKey = addKey.CreateSubKey("ShellNew");
+            newKey.SetValue("Filename", "");
+
+            Console.WriteLine($"Done! Extension {extension} added to {newKey.Name}.");
+            Thread.Sleep(3000);
+            Menu();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            Thread.Sleep(3000);
+            Menu();
+        }
+        finally
+        {
+            myKey.Close();
+            Menu();
+        }
     }
-}
 
-void Remove()
-{
-    Console.Write("Extension name (with dot, for example: .psd) > ");
-    string File = Console.ReadLine();
-
-    RegistryKey myKey = Registry.CurrentUser;
-
-    RegistryKey RemoveKey = myKey.OpenSubKey($"Software\\Classes\\{File}", true);
-
-    try
+    static void Remove()
     {
-        RegistryKey newKey = RemoveKey.CreateSubKey("ShellNew");
-        newKey.DeleteValue("Filename");
+        Console.Write("Extension name (with dot, for example: .psd) > ");
+        string extension = Console.ReadLine();
 
-        Console.WriteLine($"Deleted {File} from \'{RemoveKey}\'", newKey.Name);
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e.Message);
-    }
-    finally
-    {
-        myKey.Close();
+        RegistryKey myKey = Registry.CurrentUser;
+        RegistryKey removeKey = myKey.OpenSubKey($"Software\\Classes\\{extension}", true);
+
+        try
+        {
+            if (removeKey != null)
+            {
+                removeKey.DeleteSubKeyTree("ShellNew");
+
+                Console.WriteLine($"Extension {extension} removed from {removeKey}.");
+                Thread.Sleep(3000);
+                Menu();
+            }
+            else
+            {
+                Console.WriteLine($"Extension {extension} not found.");
+                Thread.Sleep(3000);
+                Menu();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            Thread.Sleep(3000);
+            Menu();
+        }
+        finally
+        {
+            myKey.Close();
+            Menu();
+        }
     }
 }
